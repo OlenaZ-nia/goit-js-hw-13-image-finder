@@ -1,13 +1,10 @@
-// import refs from './refs.js'
-// const { searchForm, input } = refs;
-
 const API_KEY = '24011086-928385de9f6ca9cb6056973c7';
 const BASE_URL = 'https://pixabay.com/api/';
-// const options = {
-//   headers: {
-//     Authorization: API_KEY,
-//   },
-// };
+const options = {
+  headers: {
+    Authorization: API_KEY,
+  },
+};
 
 export default class ApiService {
   constructor() {
@@ -15,14 +12,13 @@ export default class ApiService {
     this.page = 1;
     this.per_page = 12;
   }
-
-  fetchImg() {
+  
+   fetchImg() {
     let url = `${BASE_URL}?image_type=photo&orientation=horizontal&q=${this.searchQuery}&page=${this.page}&per_page=${this.per_page}&key=${API_KEY}`;
-    return fetch(url)
+    return fetch(url, options)
         .then(response => response.json())
       .then((data) => {
         this.incrementPage();
-        console.log(data);
           return data;
         })
         .catch(error => {

@@ -1,20 +1,25 @@
+import './createNotify';
+import { error } from '@pnotify/core';
+
 //Render templates
 import formTempl from '../templates/form.hbs'
-import galleryTempl from '../templates/gallery.hbs'
-// import cardTempl from '../templates/card.hbs'
+import cardTempl from '../templates/card.hbs'
+import loadMoreBtn from '../templates/loadMoreBtn.hbs'
 
-const bodyRef = document.querySelector('body');
-const galleryRef = document.querySelector('.gallery');
-const galleryContainer = document.querySelector('.gallery-container');
-// console.log(bodyRef, galleryContainer);
+// import refs from './refs'
+// const { header, galleryRef } = refs;
+
+const header = document.querySelector('.container-fixed')
+const galleryRef = document.querySelector('#list');
+
 function renderTampl(tampl, elem, source) {
-    let markup = tampl(source)
-    return elem.insertAdjacentHTML('afterbegin', markup)
+  let markup = tampl(source)
+    return elem.insertAdjacentHTML('beforeend', markup)
 }
 
-renderTampl(formTempl, bodyRef)
-// renderTampl(galleryTempl, galleryContainer)
-// renderTampl(cardTempl, bodyRef)
+renderTampl(formTempl, header)
+renderTampl(loadMoreBtn, header)
+
 
 //Query API
 import ApiService from "./apiService"
@@ -32,51 +37,77 @@ function onSearch(e) {
   e.preventDefault();
   clearGalleryList();
 
-  newApiService.query = e.currentTarget.elements.query.value;
-  console.dir(e.currentTarget.elements.query)
+  newApiService.query = input.value;
+  // console.dir(e.currentTarget.elements.query)
   // console.log(input.value === e.currentTarget.elements.query.value)
 
-  if (newApiService.query === '') {
-    return alert('Введи что-то нормальное');
+  if (newApiService.query.trim() === '') {
+    button.classList.add('is-hidden')
+    return error({
+    text: 'Enter query!'
+    });
   }
 
   newApiService.resetPage();
     
   newApiService.fetchImg().then(images => {
     if (images.total == 0) {
-      return alert('Not found');
+      button.classList.add('is-hidden')
+      return error({
+        text: 'Not found!'
+      });
     }
-    renderTampl(galleryTempl, galleryContainer, images);
+  
+    renderTampl(cardTempl, galleryRef, images);
+    scrollPage()
+
     button.classList.remove('is-hidden')
+    button.removeAttribute('disabled')
   })
 }
 
 function onFetch() {
   newApiService.fetchImg().then(images => {
-    renderTampl(galleryTempl, galleryContainer, images)
+    if (images.hits.length === 0) {
+      button.setAttribute('disabled', true);
+      return error({
+        text: 'No more!'
+      });
+    }
+    renderTampl(cardTempl, galleryRef, images)
+    scrollPage()
   })
 }
 
 function clearGalleryList() {
-  galleryContainer.innerHTML = '';
+  galleryRef.innerHTML = '';
 }
 
 //Open modal
-// const modal = document.querySelector('.js-lightbox');
-// const modalImage = document.querySelector('.lightbox__image');
+import * as basicLightbox from 'basiclightbox';
+import 'basiclightbox/dist/basicLightbox.min.css';
 
-// function onOpenModal() {
-//   window.addEventListener('keydown', onEscKeyPress);
-//   window.addEventListener('keydown', scrolImg);
-//   modal.classList.add('is-open');
-// }
+function onOpenModal(e) {
+  e.preventDefault();
 
-// list.addEventListener('click', (e) => {
-//   e.preventDefault()
-  
-//   if (e.target.nodeName === 'IMG') {
-//     onOpenModal();
-//     modalImage.setAttribute('src', e.target.dataset.source);
-//     modalImage.setAttribute('alt', e.target.alt);
-//   }
-// })
+  if (e.target.nodeName !== 'IMG') {
+    return;
+  }
+
+  const modalImage = `<img src=${e.target.dataset.source} alt="${e.target.alt}" />`;
+  const instance = basicLightbox.create(modalImage);
+  instance.show();
+}
+
+galleryRef.addEventListener('click', onOpenModal)
+
+//Scroll
+function scrollPage() {
+  setTimeout(() => {
+    galleryRef.scrollIntoView({
+  behavior: 'smooth',
+  block: 'end',
+});
+  }, 1000)
+
+}
