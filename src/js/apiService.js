@@ -7,19 +7,41 @@ export default class ApiService {
     this.page = 1;
     this.per_page = 12;
   }
-  
-   fetchImg() {
+
+  async fetchImg() {
     let url = `${BASE_URL}?image_type=photo&orientation=horizontal&q=${this.searchQuery}&page=${this.page}&per_page=${this.per_page}&key=${API_KEY}`;
-    return fetch(url)
-        .then(response => response.json())
-      .then((data) => {
-        this.incrementPage();
-          return data;
-        })
-        .catch(error => {
-            console.log('this is error', error)
-        });
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      this.incrementPage();
+      return data;
+    } catch (err) {
+      console.log('try catch block:', err);
+    }
+    
+    // return fetch(url)
+    //     .then(response => response.json())
+    //   .then((data) => {
+    //     this.incrementPage();
+    //       return data;
+    //     })
+    //     .catch(error => {
+    //         console.log('this is error', error)
+    //     });
   }
+  
+  //  fetchImg() {
+  //   let url = `${BASE_URL}?image_type=photo&orientation=horizontal&q=${this.searchQuery}&page=${this.page}&per_page=${this.per_page}&key=${API_KEY}`;
+  //   return fetch(url)
+  //       .then(response => response.json())
+  //     .then((data) => {
+  //       this.incrementPage();
+  //         return data;
+  //       })
+  //       .catch(error => {
+  //           console.log('this is error', error)
+  //       });
+  // }
 
   incrementPage() {
     this.page += 1;
